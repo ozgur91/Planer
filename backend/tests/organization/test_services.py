@@ -59,9 +59,14 @@ class FakeDepartmentRepository:
         return department
 
 
+class FakeTeamRepository:
+    pass
+
+
 class FakeOrganizationUnitOfWork:
     def __init__(self) -> None:
         self.departments = FakeDepartmentRepository()
+        self.teams = FakeTeamRepository()
         self.committed = False
         self.rolled_back = False
 
