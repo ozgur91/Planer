@@ -18,11 +18,11 @@ class Department:
     updated_at: datetime
 
     def __post_init__(self) -> None:
-        self.name = self._normalize_name(self.name)
-        self.description = self._normalize_description(self.description)
+        self.name = self.normalize_name(self.name)
+        self.description = self.normalize_description(self.description)
 
     def rename(self, name: str, *, changed_at: datetime) -> None:
-        self.name = self._normalize_name(name)
+        self.name = self.normalize_name(name)
         self.updated_at = changed_at
 
     def change_description(
@@ -31,7 +31,7 @@ class Department:
         *,
         changed_at: datetime,
     ) -> None:
-        self.description = self._normalize_description(description)
+        self.description = self.normalize_description(description)
         self.updated_at = changed_at
 
     def deactivate(self, *, changed_at: datetime) -> None:
@@ -39,7 +39,7 @@ class Department:
         self.updated_at = changed_at
 
     @classmethod
-    def _normalize_name(cls, name: str) -> str:
+    def normalize_name(cls, name: str) -> str:
         normalized_name = name.strip()
 
         if not normalized_name:
@@ -53,7 +53,7 @@ class Department:
         return normalized_name
 
     @staticmethod
-    def _normalize_description(description: str | None) -> str | None:
+    def normalize_description(description: str | None) -> str | None:
         if description is None:
             return None
 
