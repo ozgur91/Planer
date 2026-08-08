@@ -4,7 +4,10 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from app.core.database import get_database_session
-from app.modules.organization.application.services import DepartmentService
+from app.modules.organization.application.services import (
+    DepartmentService,
+    TeamService,
+)
 from app.modules.organization.infrastructure.unit_of_work import (
     SqlAlchemyOrganizationUnitOfWork,
 )
@@ -19,7 +22,19 @@ def get_department_service(
     return DepartmentService(unit_of_work)
 
 
+def get_team_service(
+    session: DatabaseSession,
+) -> TeamService:
+    unit_of_work = SqlAlchemyOrganizationUnitOfWork(session)
+    return TeamService(unit_of_work)
+
+
 DepartmentServiceDependency = Annotated[
     DepartmentService,
     Depends(get_department_service),
+]
+
+TeamServiceDependency = Annotated[
+    TeamService,
+    Depends(get_team_service),
 ]

@@ -222,3 +222,130 @@ def test_delete_department_deactivates_department(
     assert delete_response.content == b""
     assert get_response.status_code == 200
     assert get_response.json()["is_active"] is False
+
+
+def test_create_team_in_department(client: TestClient) -> None:
+    department_response = client.post(
+        "/api/v1/departments",
+        json={"name": "Entwicklung", "description": None},
+    )
+    department_id = department_response.json()["id"]
+
+    response = client.post(
+        f"/api/v1/departments/{department_id}/teams",
+        json={
+            "name": "Backend",
+            "description": "Backend-Entwicklung",
+        },
+    )
+
+    assert response.status_code == 201
+    assert response.json()["department_id"] == department_id
+    assert response.json()["name"] == "Backend"
+    assert response.json()["is_active"] is True
+
+
+def test_list_teams_from_department(client: TestClient) -> None:
+    department_response = client.post(
+        "/api/v1/departments",
+        json={"name": "Entwicklung", "description": None},
+    )
+    department_id = department_response.json()["id"]
+
+    client.post(
+        f"/api/v1/departments/{department_id}/teams",
+        json={"name": "Frontend", "description": None},
+    )
+    client.post(
+        f"/api/v1/departments/{department_id}/teams",
+        json={"name": "Backend", "description": None},
+    )
+
+    response = client.get(f"/api/v1/departments/{department_id}/teams")
+
+    assert response.status_code == 200
+    assert [team["name"] for team in response.json()] == [
+        "Backend",
+        "Frontend",
+    ]
+
+
+def test_create_team_rejects_unknown_department(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        f"/api/v1/departments/{uuid4()}/teams",
+        json={"name": "Backend", "description": None},
+    )
+
+    assert response.status_code == 404
+
+
+def test_create_team_rejects_duplicate_name(
+    client: TestClient,
+) -> None:
+    department_response = client.post(
+        "/api/v1/departments",
+        json={"name": "Entwicklung", "description": None},
+    )
+    department_id = department_response.json()["id"]
+
+    first_response = client.post(
+        f"/api/v1/departments/{department_id}/teams",
+        json={"name": "Backend", "description": None},
+    )
+    second_response = client.post(
+        f"/api/v1/departments/{department_id}/teams",
+        json={"name": "BACKEND", "description": None},
+    )
+
+    assert first_response.status_code == 201
+    assert second_response.status_code == 409
+
+
+def test_update_and_deactivate_team(client: TestClient) -> None:
+    department_response = client.post(
+        "/api/v1/departments",
+        json={"name": "Entwicklung", "description": None},
+    )
+    department_id = department_response.json()["id"]
+
+    create_response = client.post(
+        f"/api/v1/departments/{department_id}/teams",
+        json={"name": "Backend", "description": None},
+    )
+    team_id = create_response.json()["id"]
+
+    update_response = client.patch(
+        f"/api/v1/teams/{team_id}",
+        json={
+            "name": "Platform",
+            "description": "Plattform-Entwicklung",
+        },
+    )
+    delete_response = client.delete(f"/api/v1/teams/{team_id}")
+    get_response = client.get(f"/api/v1/teams/{team_id}")
+
+    assert update_response.status_code == 200
+    assert update_response.json()["name"] == "Platform"
+    assert delete_response.status_code == 204
+    assert get_response.status_code == 200
+    assert get_response.json()["is_active"] is False
+
+
+def test_create_team_rejects_whitespace_name(
+    client: TestClient,
+) -> None:
+    department_response = client.post(
+        "/api/v1/departments",
+        json={"name": "Entwicklung", "description": None},
+    )
+    department_id = department_response.json()["id"]
+
+    response = client.post(
+        f"/api/v1/departments/{department_id}/teams",
+        json={"name": "   ", "description": None},
+    )
+
+    assert response.status_code == 422
+    assert "name must not be empty" in response.json()["detail"]
