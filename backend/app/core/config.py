@@ -1,6 +1,6 @@
+from decimal import Decimal
 from functools import lru_cache
 from pathlib import Path
-from decimal import Decimal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 

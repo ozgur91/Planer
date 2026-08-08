@@ -7,10 +7,17 @@ from app.core.config import get_settings
 from app.core.database import Base
 from app.modules.organization.infrastructure.models import (
     DepartmentModel,
+    EmployeeModel,
+    EmployeeWorkScheduleModel,
     TeamModel,
 )
 
-_ = DepartmentModel, TeamModel
+_ = (
+    DepartmentModel,
+    TeamModel,
+    EmployeeModel,
+    EmployeeWorkScheduleModel,
+)
 
 config = context.config
 settings = get_settings()
