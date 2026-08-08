@@ -46,3 +46,27 @@ class DepartmentInactiveError(OrganizationError):
     def __init__(self, department_id: UUID) -> None:
         super().__init__(f"Department '{department_id}' is inactive.")
         self.department_id = department_id
+
+
+class InvalidEmployeeError(OrganizationError):
+    def __init__(self, reason: str) -> None:
+        super().__init__(f"Invalid employee: {reason}")
+        self.reason = reason
+
+
+class InvalidWorkScheduleError(OrganizationError):
+    def __init__(self, reason: str) -> None:
+        super().__init__(f"Invalid work schedule: {reason}")
+        self.reason = reason
+
+
+class EmployeeNotFoundError(OrganizationError):
+    def __init__(self, employee_id: UUID) -> None:
+        super().__init__(f"Employee '{employee_id}' was not found.")
+        self.employee_id = employee_id
+
+
+class EmployeeEmailAlreadyExistsError(OrganizationError):
+    def __init__(self, email: str) -> None:
+        super().__init__(f"Employee email '{email}' already exists.")
+        self.email = email

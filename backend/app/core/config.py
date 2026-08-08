@@ -1,5 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
+from decimal import Decimal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -12,6 +13,7 @@ class Settings(BaseSettings):
     app_version: str = "0.1.0"
     api_v1_prefix: str = "/api/v1"
     database_url: str = f"sqlite:///{DEFAULT_DATABASE_PATH.as_posix()}"
+    hours_per_person_day: Decimal = Decimal("7.7")
 
     model_config = SettingsConfigDict(
         env_file=BACKEND_DIRECTORY / ".env",
