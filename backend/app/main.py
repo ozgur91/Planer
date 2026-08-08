@@ -2,6 +2,9 @@ from fastapi import FastAPI
 
 from app.api.router import api_router
 from app.core.config import get_settings
+from app.modules.organization.api.exception_handlers import (
+    register_organization_exception_handlers,
+)
 
 
 def create_app() -> FastAPI:
@@ -16,6 +19,8 @@ def create_app() -> FastAPI:
         api_router,
         prefix=settings.api_v1_prefix,
     )
+    register_organization_exception_handlers(application)
+
     return application
 
 
