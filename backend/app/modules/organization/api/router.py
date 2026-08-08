@@ -1,11 +1,12 @@
 from uuid import UUID
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Response, status
 
 from app.modules.organization.api.dependencies import DepartmentServiceDependency
 from app.modules.organization.api.schemas import (
     DepartmentCreateRequest,
     DepartmentResponse,
+    DepartmentUpdateRequest,
 )
 
 router = APIRouter(
@@ -52,3 +53,33 @@ def get_department(
 ) -> DepartmentResponse:
     department = service.get_department(department_id)
     return DepartmentResponse.model_validate(department)
+
+
+@router.patch(
+    "/{department_id}",
+    response_model=DepartmentResponse,
+)
+def update_department(
+    department_id: UUID,
+    request: DepartmentUpdateRequest,
+    service: DepartmentServiceDependency,
+) -> DepartmentResponse:
+    department = service.update_department(
+        department_id,
+        name=request.name,
+        description=request.description,
+        description_provided="description" in request.model_fields_set,
+    )
+    return DepartmentResponse.model_validate(department)
+
+
+@router.delete(
+    "/{department_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def deactivate_department(
+    department_id: UUID,
+    service: DepartmentServiceDependency,
+) -> Response:
+    service.deactivate_department(department_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

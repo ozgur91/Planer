@@ -136,3 +136,89 @@ def test_whitespace_only_department_name_is_rejected(
 
     assert response.status_code == 422
     assert "name must not be empty" in response.json()["detail"]
+
+
+def test_update_department_changes_name_and_description(
+    client: TestClient,
+) -> None:
+    create_response = client.post(
+        "/api/v1/departments",
+        json={
+            "name": "Entwicklung",
+            "description": "Alte Beschreibung",
+        },
+    )
+    department_id = create_response.json()["id"]
+
+    response = client.patch(
+        f"/api/v1/departments/{department_id}",
+        json={
+            "name": "Softwareentwicklung",
+            "description": "Neue Beschreibung",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["name"] == "Softwareentwicklung"
+    assert response.json()["description"] == "Neue Beschreibung"
+
+
+def test_update_department_can_remove_description(
+    client: TestClient,
+) -> None:
+    create_response = client.post(
+        "/api/v1/departments",
+        json={
+            "name": "Entwicklung",
+            "description": "Beschreibung",
+        },
+    )
+    department_id = create_response.json()["id"]
+
+    response = client.patch(
+        f"/api/v1/departments/{department_id}",
+        json={"description": None},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["name"] == "Entwicklung"
+    assert response.json()["description"] is None
+
+
+def test_update_department_rejects_duplicate_name(
+    client: TestClient,
+) -> None:
+    client.post(
+        "/api/v1/departments",
+        json={"name": "Entwicklung", "description": None},
+    )
+    create_response = client.post(
+        "/api/v1/departments",
+        json={"name": "Vertrieb", "description": None},
+    )
+    department_id = create_response.json()["id"]
+
+    response = client.patch(
+        f"/api/v1/departments/{department_id}",
+        json={"name": "ENTWICKLUNG"},
+    )
+
+    assert response.status_code == 409
+
+
+def test_delete_department_deactivates_department(
+    client: TestClient,
+) -> None:
+    create_response = client.post(
+        "/api/v1/departments",
+        json={"name": "Entwicklung", "description": None},
+    )
+    department_id = create_response.json()["id"]
+
+    delete_response = client.delete(f"/api/v1/departments/{department_id}")
+    get_response = client.get(f"/api/v1/departments/{department_id}")
+
+    assert delete_response.status_code == 204
+    assert delete_response.content == b""
+    assert get_response.status_code == 200
+    assert get_response.json()["is_active"] is False

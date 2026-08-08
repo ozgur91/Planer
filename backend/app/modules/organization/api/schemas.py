@@ -9,6 +9,15 @@ class DepartmentCreateRequest(BaseModel):
     description: str | None = None
 
 
+class DepartmentUpdateRequest(BaseModel):
+    name: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=100,
+    )
+    description: str | None = None
+
+
 class DepartmentResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
