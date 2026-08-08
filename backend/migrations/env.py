@@ -5,6 +5,9 @@ from sqlalchemy import engine_from_config, pool
 
 from app.core.config import get_settings
 from app.core.database import Base
+from app.modules.organization.infrastructure.models import DepartmentModel
+
+_ = DepartmentModel
 
 config = context.config
 settings = get_settings()
