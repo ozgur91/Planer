@@ -2,13 +2,13 @@ from sqlalchemy.orm import Session
 
 from app.modules.organization.domain.repositories import (
     DepartmentRepository,
-    TeamRepository,
     EmployeeRepository,
+    TeamRepository,
 )
 from app.modules.organization.infrastructure.repositories import (
     SqlAlchemyDepartmentRepository,
-    SqlAlchemyTeamRepository,
     SqlAlchemyEmployeeRepository,
+    SqlAlchemyTeamRepository,
 )
 
 
@@ -27,11 +27,12 @@ class SqlAlchemyOrganizationUnitOfWork:
     def teams(self) -> TeamRepository:
         return self._teams
 
+    @property
+    def employees(self) -> EmployeeRepository:
+        return self._employees
+
     def commit(self) -> None:
         self._session.commit()
 
     def rollback(self) -> None:
         self._session.rollback()
-
-    def employees(self) -> EmployeeRepository:
-        return self._employees

@@ -70,3 +70,15 @@ class EmployeeEmailAlreadyExistsError(OrganizationError):
     def __init__(self, email: str) -> None:
         super().__init__(f"Employee email '{email}' already exists.")
         self.email = email
+
+
+class TeamInactiveError(OrganizationError):
+    def __init__(self, team_id: UUID) -> None:
+        super().__init__(f"Team '{team_id}' is inactive.")
+        self.team_id = team_id
+
+
+class EmployeePersonnelNumberAlreadyExistsError(OrganizationError):
+    def __init__(self, personnel_number: str) -> None:
+        super().__init__(f"Employee personnel number '{personnel_number}' already exists.")
+        self.personnel_number = personnel_number

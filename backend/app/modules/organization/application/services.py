@@ -1,15 +1,26 @@
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from uuid import UUID
 
 from app.modules.organization.domain.entities import Department, Team
+
 from app.modules.organization.domain.exceptions import (
     DepartmentInactiveError,
     DepartmentNameAlreadyExistsError,
     DepartmentNotFoundError,
+    EmployeeEmailAlreadyExistsError,
+    EmployeeNotFoundError,
+    EmployeePersonnelNumberAlreadyExistsError,
+    TeamInactiveError,
     TeamNameAlreadyExistsError,
     TeamNotFoundError,
 )
+
 from app.modules.organization.domain.repositories import OrganizationUnitOfWork
+
+from app.modules.organization.domain.employee_entities import (
+    Employee,
+    WeeklyWorkSchedule,
+)
 
 
 class DepartmentService:
@@ -221,3 +232,94 @@ class TeamService:
         except Exception:
             self._unit_of_work.rollback()
             raise
+
+
+class EmployeeService:
+    def __init__(self, unit_of_work: OrganizationUnitOfWork) -> None:
+        self._unit_of_work = unit_of_work
+
+    def create_employee(
+        self,
+        *,
+        team_id: UUID,
+        personnel_number: str | None,
+        first_name: str,
+        last_name: str,
+        email: str,
+        entry_date: date | None,
+        exit_date: date | None,
+        work_schedule: WeeklyWorkSchedule,
+    ) -> Employee:
+        team = self._unit_of_work.teams.get_by_id(team_id)
+
+        if team is None:
+            raise TeamNotFoundError(team_id)
+
+        if not team.is_active:
+            raise TeamInactiveError(team_id)
+
+        normalized_first_name = Employee.normalize_name(
+            first_name,
+            field_name="first name",
+        )
+        normalized_last_name = Employee.normalize_name(
+            last_name,
+            field_name="last name",
+        )
+        normalized_email = Employee.normalize_email(email)
+        normalized_personnel_number = Employee.normalize_personnel_number(personnel_number)
+        Employee.validate_employment_dates(entry_date, exit_date)
+
+        existing_employee = self._unit_of_work.employees.get_by_email(normalized_email)
+
+        if existing_employee is not None:
+            raise EmployeeEmailAlreadyExistsError(normalized_email)
+
+        if normalized_personnel_number is not None:
+            existing_employee = self._unit_of_work.employees.get_by_personnel_number(
+                normalized_personnel_number
+            )
+
+            if existing_employee is not None:
+                raise EmployeePersonnelNumberAlreadyExistsError(normalized_personnel_number)
+
+        try:
+            employee = self._unit_of_work.employees.create(
+                team_id=team_id,
+                personnel_number=normalized_personnel_number,
+                first_name=normalized_first_name,
+                last_name=normalized_last_name,
+                email=normalized_email,
+                entry_date=entry_date,
+                exit_date=exit_date,
+                work_schedule=work_schedule,
+            )
+            self._unit_of_work.commit()
+        except Exception:
+            self._unit_of_work.rollback()
+            raise
+
+        return employee
+
+    def get_employee(self, employee_id: UUID) -> Employee:
+        employee = self._unit_of_work.employees.get_by_id(employee_id)
+
+        if employee is None:
+            raise EmployeeNotFoundError(employee_id)
+
+        return employee
+
+    def list_employees(self, team_id: UUID) -> list[Employee]:
+        team = self._unit_of_work.teams.get_by_id(team_id)
+
+        if team is None:
+            raise TeamNotFoundError(team_id)
+
+        return self._unit_of_work.employees.list_by_team(team_id)
+
+    def get_work_schedule(
+        self,
+        employee_id: UUID,
+    ) -> WeeklyWorkSchedule:
+        self.get_employee(employee_id)
+        return self._unit_of_work.employees.get_work_schedule(employee_id)
