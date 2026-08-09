@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_database_session
 from app.modules.organization.application.services import (
     DepartmentService,
+    EmployeeService,
     TeamService,
 )
 from app.modules.organization.infrastructure.unit_of_work import (
@@ -29,6 +30,13 @@ def get_team_service(
     return TeamService(unit_of_work)
 
 
+def get_employee_service(
+    session: DatabaseSession,
+) -> EmployeeService:
+    unit_of_work = SqlAlchemyOrganizationUnitOfWork(session)
+    return EmployeeService(unit_of_work)
+
+
 DepartmentServiceDependency = Annotated[
     DepartmentService,
     Depends(get_department_service),
@@ -37,4 +45,9 @@ DepartmentServiceDependency = Annotated[
 TeamServiceDependency = Annotated[
     TeamService,
     Depends(get_team_service),
+]
+
+EmployeeServiceDependency = Annotated[
+    EmployeeService,
+    Depends(get_employee_service),
 ]

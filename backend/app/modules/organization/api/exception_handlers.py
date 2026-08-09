@@ -5,8 +5,14 @@ from app.modules.organization.domain.exceptions import (
     DepartmentInactiveError,
     DepartmentNameAlreadyExistsError,
     DepartmentNotFoundError,
+    EmployeeEmailAlreadyExistsError,
+    EmployeeNotFoundError,
+    EmployeePersonnelNumberAlreadyExistsError,
     InvalidDepartmentNameError,
+    InvalidEmployeeError,
     InvalidTeamNameError,
+    InvalidWorkScheduleError,
+    TeamInactiveError,
     TeamNameAlreadyExistsError,
     TeamNotFoundError,
 )
@@ -80,5 +86,35 @@ def register_organization_exception_handlers(application: FastAPI) -> None:
     ) -> JSONResponse:
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            content={"detail": str(exception)},
+        )
+
+    @application.exception_handler(TeamInactiveError)
+    async def handle_inactive_team(
+        _request: Request,
+        exception: TeamInactiveError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content={"detail": str(exception)},
+        )
+
+    @application.exception_handler(EmployeeNotFoundError)
+    async def handle_employee_not_found(
+        _request: Request,
+        exception: EmployeeNotFoundError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"detail": str(exception)},
+        )
+
+    @application.exception_handler(EmployeeEmailAlreadyExistsError)
+    async def handle_duplicate_employee_email(
+        _request: Request,
+        exception: EmployeeEmailAlreadyExistsError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
             content={"detail": str(exception)},
         )
