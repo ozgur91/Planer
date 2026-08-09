@@ -108,3 +108,7 @@ def test_service_rejects_duplicate_team_name_in_department(
             name="BACKEND",
             description=None,
         )
+
+
+class FakeEmployeeRepository:
+    pass
